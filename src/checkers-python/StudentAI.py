@@ -1,8 +1,32 @@
 from random import randint
 from BoardClasses import Move
 from BoardClasses import Board
+
+import time # TIME LIMIT FOR MCTS
+import math # MATH FUNCTIONS FOR UCB1
+
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
+
+class MCTSNode:
+    def __init__(self, move=None, parent=None, player_just_moved=None):
+        self.move = move  # the move that got us to this node - "None" for the root node
+        self.parent = parent
+        self.player_just_moved = player_just_moved 
+        self.children = []
+        self.untried_moves = None
+        self.visits = 0
+        self.wins = 0
+
+    def is_fully_expanded(self):
+        pass
+
+    def best_child(self, exploration_weight):
+        pass
+
+    def most_visited_child(self):
+        pass
+
 class StudentAI():
 
     def __init__(self,col,row,p):
@@ -14,6 +38,7 @@ class StudentAI():
         self.color = ''
         self.opponent = {1:2,2:1}
         self.color = 2
+        
     def get_move(self,move):
         if len(move) != 0:
             self.board.make_move(move,self.opponent[self.color])
@@ -25,3 +50,39 @@ class StudentAI():
         move = moves[index][inner_index]
         self.board.make_move(move,self.color)
         return move
+    
+    def flatten_moves(self, color):
+        # TURN THIS INTO A LIST OF MOVES INSTEAD OF A LIST OF LISTS
+        pass
+    
+    def moves_equal(self, move1, move2):
+        # FIND THE OPPONENT'S MOVE IN THE LIST OF MOVES AND RETURN TRUE IF THEY ARE EQUAL, FALSE OTHERWISE
+        pass
+    
+    def undo_move(self, move):
+        # UNDO THE MOVE ON THE BOARD
+        pass
+    
+    ### MCTS STEPS ###
+    
+    def selection(self, node):
+        # SELECT THE BEST CHILD NODE BASED ON UCB1 FORMULA
+        pass
+    
+    def expansion(self, node):
+        # EXPAND THE NODE BY ADDING A NEW CHILD NODE FOR AN UNTRIED MOVE
+        pass
+    
+    def simulation(self, node):
+        # SIMULATE A RANDOM GAME FROM THE CURRENT NODE AND RETURN THE RESULT
+        pass
+    
+    def backpropagation(self, node, result):
+        # BACKPROPAGATE THE RESULT OF THE SIMULATION UP THE TREE
+        pass
+    
+    def mcts(self, root, time_limit):
+        # IMPLEMENT THE MCTS ALGORITHM WITH A TIME LIMIT
+        pass
+    
+    
