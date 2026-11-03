@@ -9,14 +9,23 @@ import math # MATH FUNCTIONS FOR UCB1
 #Students can modify anything except the class name and exisiting functions and varibles.
 
 class MCTSNode:
-    def __init__(self, move=None, parent=None, player_just_moved=None):
+    def __init__(self, board, color, move=None, parent=None):
+        self.board = board
+        self.color = color
         self.move = move  # the move that got us to this node - "None" for the root node
         self.parent = parent
-        self.player_just_moved = player_just_moved 
         self.children = []
-        self.untried_moves = None
         self.visits = 0
         self.wins = 0
+        self._untried_moves = self._untried_moves_flattened()
+
+    def _untried_moves_flattened(self):
+        moves = self.board.get_all_possible_moves(self.color)
+        flattened = []
+        for move_list in moves:
+            for move in move_list:
+                flattened.append(move)
+        return flattened
 
     def is_fully_expanded(self):
         pass
@@ -50,10 +59,6 @@ class StudentAI():
         move = moves[index][inner_index]
         self.board.make_move(move,self.color)
         return move
-    
-    def flatten_moves(self, color):
-        # TURN THIS INTO A LIST OF MOVES INSTEAD OF A LIST OF LISTS
-        pass
     
     def moves_equal(self, move1, move2):
         # FIND THE OPPONENT'S MOVE IN THE LIST OF MOVES AND RETURN TRUE IF THEY ARE EQUAL, FALSE OTHERWISE
