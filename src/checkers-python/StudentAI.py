@@ -38,14 +38,19 @@ class MCTSNode:
         '''
         return len(self._untried_moves) == 0
 
-    def best_child(self, exploration_weight):
-        pass
+    def best_child(self, exploration_weight=1.0):
+        '''
+        Selects the best child node based on the UCB1 formula
+        @param exploration_weight: The weight for exploration vs exploitation
+        @return: The child node with the highest UCB1 value
+        '''
+        choices_weights = [(child.wins / child.visits) + exploration_weight 
+                           * math.sqrt((2 * math.log(self.visits) / child.visits)) 
+                           for child in self.children]
+        return self.children[choices_weights.index(max(choices_weights))]
 
-    def most_visited_child(self):
-        pass
 
 class StudentAI():
-
     def __init__(self,col,row,p):
         self.col = col
         self.row = row
