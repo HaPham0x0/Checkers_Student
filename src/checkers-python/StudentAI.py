@@ -9,11 +9,11 @@ import math # MATH FUNCTIONS FOR UCB1
 #Students can modify anything except the class name and exisiting functions and varibles.
 
 class MCTSNode:
-    def __init__(self, board, color, move=None, parent=None):
+    def __init__(self, board, color, parent=None, parent_move=None):
         self.board = board
         self.color = color
-        self.move = move  # the move that got us to this node - "None" for the root node
         self.parent = parent
+        self.parent_move = parent_move 
         self.children = []
         self.visits = 0
         self.wins = 0
@@ -37,6 +37,17 @@ class MCTSNode:
         @return: True if there are no untried moves left, False otherwise
         '''
         return len(self._untried_moves) == 0
+
+    def expand(self):
+        '''
+        Expands the node by creating a new child node for an untried move
+        @return: The newly created child node
+        '''
+        move = self._untried_moves.pop()
+        next_board = self.board.make_move(move, self.color)
+        child_node = MCTSNode(next_board, self.color, move, self)   
+        self.children.append(child_node)
+        return child_node
 
     def best_child(self, exploration_weight=1.0):
         '''
