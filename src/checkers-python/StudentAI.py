@@ -20,6 +20,10 @@ class MCTSNode:
         self._untried_moves = self._untried_moves_flattened()
 
     def _untried_moves_flattened(self):
+        '''
+        Flattens the 2D list of untried moves into a 1D list
+        @return: A 1D list of untried moves
+        '''
         moves = self.board.get_all_possible_moves(self.color)
         flattened = []
         for move_list in moves:
@@ -28,7 +32,11 @@ class MCTSNode:
         return flattened
 
     def is_fully_expanded(self):
-        pass
+        '''
+        Checks if there's any untried moves left for this node
+        @return: True if there are no untried moves left, False otherwise
+        '''
+        return len(self._untried_moves) == 0
 
     def best_child(self, exploration_weight):
         pass
