@@ -118,11 +118,40 @@ class StudentAI():
     
     def selection(self, node):
         # SELECT THE BEST CHILD NODE BASED ON UCB1 FORMULA
-        pass
+        '''
+        LOGIC:
+        1. START FROM THE ROOT NODE
+        2. LOOK AT ALL THE CHILDREN OF THE CURRENT NODE
+        3. APPLY THE UCB1 FORMULA TO SELECT THE BEST CHILD NODE
+        4. PICK THE CHILD WITH THE HIGHEST UCB1 VALUE AND MOVE TO THAT CHILD NODE
+        5. REPEAT UNTIL A LEAF NODE IS REACHED (A NODE THAT HAS UNTRIED MOVES OR IS A TERMINAL NODE)
+        6. RETURN THAT LEAF NODE
+        '''
+        current_node = node
+        while not current_node.is_terminal_node():
+            if not current_node.is_fully_expanded():
+                return current_node  # RETURN THE LEAF NODE IF IT HAS UNTRIED MOVES
+            else:
+                current_node = current_node.best_child()  # MOVE TO THE BEST CHILD NODE BASED ON UCB1
+                self.board.make_move(current_node.parent_move, current_node.parent.color)  # MAKE THE MOVE ON THE BOARD
+                self.moves_made += 1  # INCREMENT THE MOVE COUNTER
+        return current_node  # RETURN THE LEAF NODE
     
     def expansion(self, node):
         # EXPAND THE NODE BY ADDING A NEW CHILD NODE FOR AN UNTRIED MOVE
-        pass
+        '''
+        LOGIC:
+        1. IDENTIFY A LEAF NODE (THERE ARE LEGAL MOVES FROM THIS NODE THAT HAVE NOT BEEN TRIED YET)
+        2. SELECT ONE OF THE UNTRIED MOVES
+        3. PLAY THAT MOVE ON THE BOARD (MODIFYING THE BOARD IN PLACE)
+        4. CREATE A NEW CHILD NODE WITH THE NEW BOARD STATE AND ADD IT TO THE CHILDREN OF THE CURRENT NODE
+        5. RETURN THE NEW CHILD NODE
+        '''
+        if node.is_fully_expanded():
+            return node
+        child_node = node.expand()  # EXPAND THE NODE AND GET THE NEW CHILD NODE
+        self.moves_made += 1  # INCREMENT THE MOVE COUNTER
+        return child_node  # RETURN THE NEW CHILD NODE
     
     def simulation(self, node):
         # SIMULATE A RANDOM GAME FROM THE CURRENT NODE AND RETURN THE RESULT
