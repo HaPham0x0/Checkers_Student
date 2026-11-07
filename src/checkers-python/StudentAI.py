@@ -251,6 +251,17 @@ class StudentAI():
     
     def mcts(self, root, time_limit):
         # IMPLEMENT THE MCTS ALGORITHM WITH A TIME LIMIT
-        pass
+        end_time = time.time() + time_limit # TIME LIMIT FOR MCTS TO STOP
+
+        while time.time() < end_time:
+            leaf_node = self._selection(root)  # SELECTION STEP
+            child_node = self._expansion(leaf_node)  # EXPANSION STEP
+            result = self._simulation(child_node)  # SIMULATION STEP
+            self._backpropagation(child_node, result)  # BACKPROPAGATION STEP
     
+        if not root.children:
+            return None
+
+        best_child = max(root.children, key=lambda c: c.visits)  # SELECT THE CHILD WITH THE MOST VISITS
+        return best_child.parent_move  # RETURN THE MOVE THAT LED TO THE BEST CHILD
     
