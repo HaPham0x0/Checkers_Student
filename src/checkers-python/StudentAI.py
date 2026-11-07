@@ -10,8 +10,6 @@ import copy
 #Students can modify anything except the class name and exisiting functions and varibles.
 
 # OPPONENT LOOKUP DICTIONARY TO GET THE OPPONENT'S COLOR
-## OPPONENT[1] -> 2
-## OPPONENT[2] -> 1
 OPPONENT = {1:2, 2:1}
 
 class MCTSNode:
@@ -23,9 +21,9 @@ class MCTSNode:
         self.children = []
         self.visits = 0
         self.wins = 0
-        self._untried_moves = self.untried_moves_flattened()
+        self._untried_moves = self._untried_moves_flattened()
 
-    def untried_moves_flattened(self):
+    def _untried_moves_flattened(self):
         '''
         Flattens the 2D list of untried moves into a 1D list
         @return: A 1D list of untried moves
@@ -117,6 +115,13 @@ class StudentAI():
     def undo_move(self, move):
         # UNDO THE MOVE ON THE BOARD
         self.board.undo()
+
+    def flattened_moves(self, moves):
+        flattened = []
+        for move_list in moves:
+            for move in move_list:
+                flattened.append(move)
+        return flattened
     
     ### MCTS STEPS ###
     
@@ -156,7 +161,22 @@ class StudentAI():
     
     def simulation(self, node):
         # SIMULATE A RANDOM GAME FROM THE CURRENT NODE AND RETURN THE RESULT
-        pass
+        current_board = copy.deepcopy(node.board)
+        current_color = node.color
+        while current_board.is_win(OPPONENT[current_color]) == 0:
+            legal_moves = self.flattened_moves(current_board.get_all_possible_moves(current_color))
+            if not legal_moves:
+                break
+            move = node.rollout_policy(legal_moves)
+            current_board.make_move(move, current_color)
+            current_color = OPPONENT[current_color]
+        result = current_board.is_win(OPPONENT[current_color])
+        if result == -1:
+            return 0.5
+        if result == self.color:
+            return 1
+        else:
+            return 0
     
     def backpropagation(self, node, result):
         # BACKPROPAGATE THE RESULT OF THE SIMULATION UP THE TREE
