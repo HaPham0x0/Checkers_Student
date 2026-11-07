@@ -4,7 +4,7 @@ from BoardClasses import Board
 
 import time # TIME LIMIT FOR MCTS
 import math # MATH FUNCTIONS FOR UCB1
-import copy
+import copy # DEEP COPY THE BOARD
 
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
@@ -16,12 +16,15 @@ class MCTSNode:
     def __init__(self, board, color, parent=None, parent_move=None):
         self.board = board
         self.color = color
+
         self.parent = parent
         self.parent_move = parent_move 
+
         self.children = []
         self.visits = 0
         self.wins = 0
         self._untried_moves = self._untried_moves_flattened()
+
 
     def _untried_moves_flattened(self):
         '''
@@ -30,10 +33,13 @@ class MCTSNode:
         '''
         moves = self.board.get_all_possible_moves(self.color)
         flattened = []
+
         for move_list in moves:
             for move in move_list:
                 flattened.append(move)
+                
         return flattened
+
 
     def is_fully_expanded(self):
         '''
@@ -41,6 +47,7 @@ class MCTSNode:
         @return: True if there are no untried moves left, False otherwise
         '''
         return len(self._untried_moves) == 0
+
 
     def expand(self):
         '''
@@ -50,41 +57,57 @@ class MCTSNode:
         move = self._untried_moves.pop()
         new_board = copy.deepcopy(self.board)
         new_board.make_move(move, self.color)
+        
         child_node = MCTSNode(new_board, OPPONENT[self.color], parent=self, parent_move=move)  
         self.children.append(child_node)
         return child_node
 
+
     def best_child(self, ai_color, exploration_weight=1.0):
         '''
         Selects the best child node based on the UCB1 formula
+        @param ai_color: The color of the AI player
         @param exploration_weight: The weight for exploration vs exploitation
         @return: The child node with the highest UCB1 value
         '''
         for child in self.children:
             if child.visits == 0:
                 return child
+            
         choices_weights = []
+
         for child in self.children:
             win_rate = child.wins / child.visits
+
             if self.color != ai_color:
                 win_rate = 1 - win_rate
+
             choices_weights.append(win_rate + exploration_weight
                                    * math.sqrt((2 * math.log(self.visits) / child.visits)))
         
         return self.children[choices_weights.index(max(choices_weights))]
 
+
     def is_terminal_node(self):
         '''
-        CHECK IF THE CURRENT NODE IS A TERMINAL NODE (I.E., THE GAME IS OVER)
-        RETURN TRUE IF THE GAME IS OVER
+        Checks if the current node is a terminal node
+        @return: True if the game is over, False otherwise
         '''
         if self.board.is_win(OPPONENT[self.color]) != 0:
             return True
+        
         return self.is_fully_expanded() and len(self.children) == 0
 
+
     def rollout_policy(self, possible_moves):
-        # SELECT A RANDOM MOVE FROM THE POSSIBLE MOVES
+        '''
+        Selects a random move from the possible moves
+        @param possible_moves: The list of possible moves
+        @return: A randomly selected move
+        '''
         return possible_moves[randint(0, len(possible_moves) - 1)]
+
+
         
 class StudentAI():
     def __init__(self,col,row,p):
@@ -97,6 +120,7 @@ class StudentAI():
         self.opponent = {1:2,2:1}
         self.color = 2
         self.time_limit = 1.0  # SET A TIME LIMIT FOR THINKING (IN SECONDS) FOR MCTS
+
         
     def get_move(self,move):
         if len(move) != 0:
@@ -112,25 +136,34 @@ class StudentAI():
 
         self.board.make_move(best_move,self.color)
         return best_move
+
     
     def moves_equal(self, move1, move2):
         # FIND THE OPPONENT'S MOVE IN THE LIST OF MOVES AND RETURN TRUE IF THEY ARE EQUAL, FALSE OTHERWISE
         return str(move1) == str(move2)
 
-    def undo_move(self, move):
+
+    def undo_move(self):
         # UNDO THE MOVE ON THE BOARD
         self.board.undo()
 
-    def flattened_moves(self, moves):
+
+    def _flattened_moves(self, moves):
+        '''
+        Flattens the 2D list of untried moves into a 1D list
+        @return: A 1D list of untried moves
+        '''
         flattened = []
+
         for move_list in moves:
             for move in move_list:
                 flattened.append(move)
+
         return flattened
     
     ### MCTS STEPS ###
     
-    def selection(self, node):
+    def _selection(self, node):
         # SELECT THE BEST CHILD NODE BASED ON UCB1 FORMULA
         '''
         LOGIC:
@@ -142,14 +175,17 @@ class StudentAI():
         6. RETURN THAT LEAF NODE
         '''
         current_node = node
+        
         while not current_node.is_terminal_node():
             if not current_node.is_fully_expanded():
                 return current_node  # RETURN THE LEAF NODE IF IT HAS UNTRIED MOVES
             else:
                 current_node = current_node.best_child(self.color)  # MOVE TO THE BEST CHILD NODE BASED ON UCB1
+       
         return current_node  # RETURN THE LEAF NODE
+
     
-    def expansion(self, node):
+    def _expansion(self, node):
         # EXPAND THE NODE BY ADDING A NEW CHILD NODE FOR AN UNTRIED MOVE
         '''
         LOGIC:
@@ -161,31 +197,51 @@ class StudentAI():
         '''
         if node.is_fully_expanded():
             return node
+        
         child_node = node.expand()  # EXPAND THE NODE AND GET THE NEW CHILD NODE
         return child_node  # RETURN THE NEW CHILD NODE
+
     
-    def simulation(self, node):
-        # SIMULATE A RANDOM GAME FROM THE CURRENT NODE AND RETURN THE RESULT
+    def _simulation(self, node):
+        '''
+        Simulates a random game from the current node
+        @param node: The node to simulate from
+        @return: The result of the simulation
+        '''
         current_board = copy.deepcopy(node.board)
         current_color = node.color
+        
         while current_board.is_win(OPPONENT[current_color]) == 0:
-            legal_moves = self.flattened_moves(current_board.get_all_possible_moves(current_color))
+            legal_moves = self._flattened_moves(current_board.get_all_possible_moves(current_color))
+            
             if not legal_moves:
                 break
+            
             move = node.rollout_policy(legal_moves)
             current_board.make_move(move, current_color)
             current_color = OPPONENT[current_color]
+        
         result = current_board.is_win(OPPONENT[current_color])
+
         if result == -1:
             return 0.5
         if result == self.color:
             return 1
         else:
             return 0
+
     
-    def backpropagation(self, node, result):
-        # BACKPROPAGATE THE RESULT OF THE SIMULATION UP THE TREE
-        pass
+    def _backpropagation(self, node, result):
+        '''
+        Backpropagates the result of the simulation up the tree
+        @param node: The node to backpropagate from
+        @param result: The result of the simulation
+        '''
+        while node is not None:
+            node.visits += 1
+            node.wins += result
+            node = node.parent
+
     
     def mcts(self, root, time_limit):
         # IMPLEMENT THE MCTS ALGORITHM WITH A TIME LIMIT
