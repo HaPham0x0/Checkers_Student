@@ -4,6 +4,7 @@ from BoardClasses import Board
 
 import time # TIME LIMIT FOR MCTS
 import math # MATH FUNCTIONS FOR UCB1
+import copy
 
 #The following part should be completed by students.
 #Students can modify anything except the class name and exisiting functions and varibles.
@@ -22,9 +23,9 @@ class MCTSNode:
         self.children = []
         self.visits = 0
         self.wins = 0
-        self._untried_moves = self._untried_moves_flattened()
+        self._untried_moves = self.untried_moves_flattened()
 
-    def _untried_moves_flattened(self):
+    def untried_moves_flattened(self):
         '''
         Flattens the 2D list of untried moves into a 1D list
         @return: A 1D list of untried moves
@@ -49,10 +50,9 @@ class MCTSNode:
         @return: The newly created child node
         '''
         move = self._untried_moves.pop()
-        # CHANGE THE BOARD IN PLACE TO REFLECT THE MOVE (OUR OLD CODE CREATED A NEW BOARD, BUT WE WANT TO MODIFY THE EXISTING ONE)
-        self.board.make_move(move, self.color)  
-        # AFTER MAKING THE MOVE, CREATE A NEW CHILD NODE WITH THE OPPONENT'S COLOR AND ADD IT TO THE CHILDREN LIST
-        child_node = MCTSNode(self.board, OPPONENT[self.color], parent=self, parent_move=move)  
+        new_board = copy.deepcopy(self.board)
+        new_board.make_move(move, self.color)
+        child_node = MCTSNode(new_board, OPPONENT[self.color], parent=self, parent_move=move)  
         self.children.append(child_node)
         return child_node
 
@@ -62,6 +62,9 @@ class MCTSNode:
         @param exploration_weight: The weight for exploration vs exploitation
         @return: The child node with the highest UCB1 value
         '''
+        for child in self.children:
+            if child.visits == 0:
+                return child
         choices_weights = [(child.wins / child.visits) + exploration_weight 
                            * math.sqrt((2 * math.log(self.visits) / child.visits)) 
                            for child in self.children]
@@ -72,6 +75,8 @@ class MCTSNode:
         CHECK IF THE CURRENT NODE IS A TERMINAL NODE (I.E., THE GAME IS OVER)
         RETURN TRUE IF THE GAME IS OVER
         '''
+        if self.board.is_win(OPPONENT[self.color]) != 0:
+            return True
         return self.is_fully_expanded() and len(self.children) == 0
 
     def rollout_policy(self, possible_moves):
@@ -88,7 +93,6 @@ class StudentAI():
         self.color = ''
         self.opponent = {1:2,2:1}
         self.color = 2
-        self.moves_made = 0    # COUNTER FOR EVERY MOVE MADE SO THAT WE WILL ABLE TO UNDO THE RIGHT AMOUNT OF MOVES LATER
         self.time_limit = 1.0  # SET A TIME LIMIT FOR THINKING (IN SECONDS) FOR MCTS
         
     def get_move(self,move):
@@ -133,8 +137,6 @@ class StudentAI():
                 return current_node  # RETURN THE LEAF NODE IF IT HAS UNTRIED MOVES
             else:
                 current_node = current_node.best_child()  # MOVE TO THE BEST CHILD NODE BASED ON UCB1
-                self.board.make_move(current_node.parent_move, current_node.parent.color)  # MAKE THE MOVE ON THE BOARD
-                self.moves_made += 1  # INCREMENT THE MOVE COUNTER
         return current_node  # RETURN THE LEAF NODE
     
     def expansion(self, node):
@@ -143,14 +145,13 @@ class StudentAI():
         LOGIC:
         1. IDENTIFY A LEAF NODE (THERE ARE LEGAL MOVES FROM THIS NODE THAT HAVE NOT BEEN TRIED YET)
         2. SELECT ONE OF THE UNTRIED MOVES
-        3. PLAY THAT MOVE ON THE BOARD (MODIFYING THE BOARD IN PLACE)
+        3. PLAY THAT MOVE ON THE BOARD
         4. CREATE A NEW CHILD NODE WITH THE NEW BOARD STATE AND ADD IT TO THE CHILDREN OF THE CURRENT NODE
         5. RETURN THE NEW CHILD NODE
         '''
         if node.is_fully_expanded():
             return node
         child_node = node.expand()  # EXPAND THE NODE AND GET THE NEW CHILD NODE
-        self.moves_made += 1  # INCREMENT THE MOVE COUNTER
         return child_node  # RETURN THE NEW CHILD NODE
     
     def simulation(self, node):
