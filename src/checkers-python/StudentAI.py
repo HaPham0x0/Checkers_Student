@@ -138,7 +138,7 @@ class StudentAI():
         best_move = self.mcts(root, self.time_limit)    # SEACH FOR THE BEST MOVE USING MCTS WITH A TIME LIMIT
 
         if best_move is None:
-            return moves[0]
+            best_move = moves[0]    # IF MCTS FAILS TO FIND A MOVE, SELECT THE FIRST MOVE FROM THE LIST OF LEGAL MOVES
         
         self.board.make_move(best_move,self.color)
         return best_move
