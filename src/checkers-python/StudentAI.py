@@ -122,18 +122,24 @@ class StudentAI():
         self.time_limit = 1.0  # SET A TIME LIMIT FOR THINKING (IN SECONDS) FOR MCTS
 
         
-    def get_move(self,move):
+    def get_move(self, move):
         if len(move) != 0:
             self.board.make_move(move,self.opponent[self.color])
         else:
             self.color = 1
 
-        moves = self.board.get_all_possible_moves(self.color)
+        moves = self._flattened_moves(self.board.get_all_possible_moves(self.color))
+
+        if not moves:
+            return None
 
         # APPLY MCTS TO GET THE BEST MOVE INSTEAD OF RANDOM MOVE (IN ORIGINAL CODE, WE WERE SELECTING A RANDOM MOVE)
-        root = MCTSNode(self.board, self.color)         # CREATE A ROOT NODE FOR MCTS WITH THE CURRENT BOARD STATE AND PLAYER COLOR
+        root = MCTSNode(copy.deepcopy(self.board), self.color)         # CREATE A ROOT NODE FOR MCTS WITH THE CURRENT BOARD STATE AND PLAYER COLOR
         best_move = self.mcts(root, self.time_limit)    # SEACH FOR THE BEST MOVE USING MCTS WITH A TIME LIMIT
 
+        if best_move is None:
+            return moves[0]
+        
         self.board.make_move(best_move,self.color)
         return best_move
 
