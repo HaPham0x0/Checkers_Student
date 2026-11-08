@@ -63,7 +63,7 @@ class MCTSNode:
         return child_node
 
 
-    def best_child(self, ai_color, exploration_weight=1.0):
+    def best_child(self, ai_color, exploration_weight=1.4):
         '''
         Selects the best child node based on the UCB1 formula
         @param ai_color: The color of the AI player
