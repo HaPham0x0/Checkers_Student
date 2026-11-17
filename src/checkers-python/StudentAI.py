@@ -119,10 +119,14 @@ class StudentAI():
         self.color = ''
         self.opponent = {1:2,2:1}
         self.color = 2
-        self.time_limit = 1.0  # SET A TIME LIMIT FOR THINKING (IN SECONDS) FOR MCTS
+        self.time_limit = 1.0         # SET A TIME LIMIT FOR THINKING (IN SECONDS) FOR MCTS
+        self.total_time_limit = 200.0 # ADDING MAX THINKING TIME PER GAME (A GAME IS LOST AFTER 5 MINUTES)
+        self.time_used = 0.0          # ADDING THINKING TIME USED TO KEEP TRACK
 
         
     def get_move(self, move):
+        start_time = time.time()
+
         if len(move) != 0:
             self.board.make_move(move,self.opponent[self.color])
         else:
@@ -135,12 +139,17 @@ class StudentAI():
 
         # APPLY MCTS TO GET THE BEST MOVE INSTEAD OF RANDOM MOVE (IN ORIGINAL CODE, WE WERE SELECTING A RANDOM MOVE)
         root = MCTSNode(copy.deepcopy(self.board), self.color)         # CREATE A ROOT NODE FOR MCTS WITH THE CURRENT BOARD STATE AND PLAYER COLOR
-        best_move = self.mcts(root, self.time_limit)    # SEACH FOR THE BEST MOVE USING MCTS WITH A TIME LIMIT
+
+        # THIS IS IMPLEMENTED TO MAKE SURE WE STAY UNDER 5 MINUTES
+        remaining_time = self.total_time_limit - self.time_used
+        limit = max(0.1, min(self.time_limit, remaining_time / 30))
+        best_move = self.mcts(root, limit)
 
         if best_move is None:
             best_move = moves[0]    # IF MCTS FAILS TO FIND A MOVE, SELECT THE FIRST MOVE FROM THE LIST OF LEGAL MOVES
         
         self.board.make_move(best_move,self.color)
+        self.time_used += time.time() - start_time  # ADDING TO THE GAME'S TOTAL TIME
         return best_move
 
     
